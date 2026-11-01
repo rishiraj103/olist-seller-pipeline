@@ -1,0 +1,20 @@
+# data and outputs
+data/
+*.parquet
+*.csv
+!docs/**/*.csv
+!transform/category_fixes.csv
+
+# secrets
+.env
+
+# python
+.venv/
+__pycache__/
+*.pyc
+
+# local-only files
+CHECKLIST.md
+*.local.md
+.claude/
+.vscode/
