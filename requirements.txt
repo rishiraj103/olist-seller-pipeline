@@ -1,0 +1,9 @@
+pandas
+pyarrow
+pyspark==3.5.4
+psycopg2-binary
+sqlalchemy
+boto3
+streamlit
+plotly
+python-dotenv
