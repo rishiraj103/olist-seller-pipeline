@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3-design — 2026-11-06
+- Star schema DDL in `sql/ddl/`: schemas `staging`, `dw`, `audit`; dimensions with `-1` Unknown rows; transaction and accumulating-snapshot facts; `review_text`; audit tables; FK indexes.
+- `dim_seller` is SCD Type 2 with one current row per seller enforced by a partial unique index.
+- `dim_date` populated for 2016–2020. All DDL is rerun-safe and tested on local PostgreSQL.
+- `docs/warehouse_design.md`: grains, star diagram and design decisions.
+
 ## v0.2-profiling — 2026-11-04
 - `tools/profile_data.py` profiles all 9 source files and checks each known data problem.
 - `docs/data_profile.md`: row counts, nulls, duplicates and a pipeline rule for every confirmed problem.
