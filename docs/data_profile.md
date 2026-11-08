@@ -29,7 +29,7 @@ Code columns:
 | `customer_id` is per order | 99,441 customer_ids but 96,096 `customer_unique_id`s | `dim_customer` keyed on `customer_unique_id`; facts look up through `customer_id → customer_unique_id` |
 | Misspelled product columns | `product_name_lenght`, `product_description_lenght` | rename to `product_name_length`, `product_description_length` |
 | Products with no category | 610 products | category = `unknown` |
-| Categories missing a translation | `pc_gamer`, `portateis_cozinha_e_preparadores_de_alimentos` | map in `transform/category_fixes.csv`, else `unknown` |
+| Categories missing a translation | `pc_gamer`, `portateis_cozinha_e_preparadores_de_alimentos` | map in `CATEGORY_FIXES` (`transform/rules.py`), else `unknown` |
 | Non-delivered orders have empty delivery dates | 2,957 of 2,963 non-delivered orders | allowed: delivery date stays null, `delay_days` and `is_late` null |
 | Delivered orders with no delivery date | 8 orders | keep; `delay_days` and `is_late` null |
 | Delivered before handed to carrier | 23 orders | reject, reason `delivered_before_shipped` |
