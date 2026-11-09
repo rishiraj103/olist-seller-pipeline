@@ -84,6 +84,12 @@ class TestRules(unittest.TestCase):
                                   R.REVIEW_RULES)
         self.assertEqual((ids(good, "review_id"), ids(bad, "review_id")), (["r1"], ["r2"]))
 
+    def test_exists_in(self):
+        orders = self.df([("o1",)], ["order_id"])
+        good, bad = R.exists_in(orders, "order_id", "unknown_order")(self.df([(1, "o1"), (2, "o2")], ["id", "order_id"]))
+        self.assertEqual((ids(good), ids(bad)), ([1], [2]))
+        self.assertEqual(bad.collect()[0].reject_reason, "unknown_order")
+
     def test_clean_products(self):
         products = self.df([("p1", "beleza_saude", 10), ("p2", None, 5), ("p3", "pc_gamer", 1)],
                            ["product_id", "product_category_name", "product_name_lenght"])

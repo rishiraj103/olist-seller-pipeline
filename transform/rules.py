@@ -51,6 +51,13 @@ def before(later: str, earlier: str, reason: str) -> Rule:
     return check(lambda: F.col(later) < F.col(earlier), reason)
 
 
+def exists_in(parent: DataFrame, key: str, reason: str) -> Rule:
+    """Referential rule: reject rows whose `key` is not in `parent` (e.g. items of a rejected order)."""
+    keys = parent.select(key).distinct()
+    return lambda df: (df.join(keys, key, "left_semi"),
+                       df.join(keys, key, "left_anti").withColumn("reject_reason", F.lit(reason)))
+
+
 def apply_rules(df: DataFrame, rules: list[Rule]) -> tuple[DataFrame, DataFrame | None]:
     bads = []
     for rule in rules:

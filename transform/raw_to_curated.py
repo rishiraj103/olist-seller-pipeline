@@ -80,9 +80,14 @@ def run(spark: SparkSession, batch_id: str, src: str, out: str) -> dict:
         "products": lambda df: R.clean_products(df, translation),
     }
     summary = {"batch_id": batch_id, "tables": {}}
-    for table, rules in RULES.items():
+    good_orders = None
+    for table, rules in RULES.items():  # orders first: items and reviews must belong to a passed order
         df = prep.get(table, lambda d: d)(read_csv(spark, src, table)).cache()
+        if table in ("order_items", "order_reviews"):
+            rules = rules + [R.exists_in(good_orders, "order_id", "unknown_order")]
         good, bad = R.apply_rules(df, rules)
+        if table == "orders":
+            good_orders = good.select("order_id").cache()
         good.write.mode("overwrite").parquet(f"{out}/curated/{table}/batch_id={batch_id}")
         by_rule = {r["reject_reason"]: r["count"] for r in bad.groupBy("reject_reason").count().collect()}
         if by_rule:

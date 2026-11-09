@@ -32,7 +32,7 @@ Code columns:
 | Categories missing a translation | `pc_gamer`, `portateis_cozinha_e_preparadores_de_alimentos` | map in `CATEGORY_FIXES` (`transform/rules.py`), else `unknown` |
 | Non-delivered orders have empty delivery dates | 2,957 of 2,963 non-delivered orders | allowed: delivery date stays null, `delay_days` and `is_late` null |
 | Delivered orders with no delivery date | 8 orders | keep; `delay_days` and `is_late` null |
-| Delivered before handed to carrier | 23 orders | reject, reason `delivered_before_shipped` |
+| Delivered before handed to carrier | 23 orders | reject, reason `delivered_before_shipped`; their 50 items and 23 reviews are rejected as `unknown_order` |
 | Handed to carrier before purchase | 166 orders | keep (likely clock or entry error); documented limitation |
 | Approved before purchase | 0 orders | rule kept as a guard: reject, reason `approved_before_purchase` |
 | Same `review_id` on several orders | 814 repeated `review_id`s, 0 repeated `(review_id, order_id)` | `review_text` key is `(review_id, order_id)` |
