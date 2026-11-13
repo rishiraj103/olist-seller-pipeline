@@ -17,3 +17,4 @@ CHECKLIST.md
 *.local.md
 .claude/
 .vscode/
+*.lnk
