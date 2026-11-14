@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7-aws-lake — 2026-11-14
+- `infra/setup_aws.sh` (rerun-safe) creates the S3 lake (private, encrypted, versioned, lifecycle rules), least-privilege IAM roles, the ingest Lambda, the Glue 5.0 job and an Athena workgroup with a 100 MB scan limit.
+- Lambda `on_batch_arrival` checks every manifest file's MD5 and copies the batch from `landing/` to `raw/`; a bad manifest fails and copies nothing.
+- Glue `raw_to_curated` runs the Step 5 script unchanged; batch 2018-01 succeeded and its DQ summary equals the local run.
+- Athena external tables over curated Parquet (`sql/athena/`); counts and price totals for 2018-01 match local.
+
 ## v0.6-warehouse-local — 2026-11-12
 - `loader/curated_to_warehouse.py` refills `staging.*` from curated Parquet (COPY), records DQ results and calls `dw.run_batch`.
 - PL/pgSQL procedures: SCD1 customer/product, SCD2 seller, idempotent fact loads with point-in-time seller lookup, reconciliation, `run_batch` with error logging.
