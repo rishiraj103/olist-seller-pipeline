@@ -1,0 +1,71 @@
+{
+  "Comment": "Olist batch: Glue raw_to_curated -> DQ gate (reject rate <= 5%) -> email. BUCKET/TOPIC_ARN are filled in by infra/setup_aws.sh",
+  "StartAt": "RawToCurated",
+  "States": {
+    "RawToCurated": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::glue:startJobRun.sync",
+      "Parameters": {
+        "JobName": "raw_to_curated",
+        "Arguments": {
+          "--batch_id.$": "$.batch_id",
+          "--input.$": "States.Format('s3://BUCKET/raw/batch_id={}', $.batch_id)"
+        }
+      },
+      "ResultPath": null,
+      "Retry": [{
+        "ErrorEquals": ["Glue.ConcurrentRunsExceededException", "Glue.InternalServiceException",
+                        "Glue.ThrottlingException", "Glue.OperationTimeoutException"],
+        "IntervalSeconds": 30, "BackoffRate": 2, "MaxAttempts": 2
+      }],
+      "Catch": [{"ErrorEquals": ["States.ALL"], "ResultPath": "$.error", "Next": "NotifyFailure"}],
+      "Next": "CheckDQ"
+    },
+    "CheckDQ": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {"FunctionName": "check_dq", "Payload": {"batch_id.$": "$.batch_id"}},
+      "ResultSelector": {
+        "rows_read.$": "$.Payload.rows_read",
+        "rows_rejected.$": "$.Payload.rows_rejected",
+        "reject_rate.$": "$.Payload.reject_rate"
+      },
+      "ResultPath": "$.dq",
+      "Retry": [{
+        "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException", "Lambda.SdkClientException"],
+        "IntervalSeconds": 5, "BackoffRate": 2, "MaxAttempts": 2
+      }],
+      "Catch": [{"ErrorEquals": ["States.ALL"], "ResultPath": "$.error", "Next": "NotifyFailure"}],
+      "Next": "DQGate"
+    },
+    "DQGate": {
+      "Type": "Choice",
+      "Choices": [{"Variable": "$.dq.reject_rate", "NumericGreaterThan": 0.05, "Next": "NotifyFailure"}],
+      "Default": "NotifySuccess"
+    },
+    "NotifySuccess": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "TOPIC_ARN",
+        "Subject.$": "States.Format('Olist batch {} ready to load', $.batch_id)",
+        "Message.$": "States.Format('Batch {} passed DQ: {} rows read, {} rejected (reject rate {}).\nLoad it: python -m loader.curated_to_warehouse --batch {} --target rds', $.batch_id, $.dq.rows_read, $.dq.rows_rejected, $.dq.reject_rate, $.batch_id)"
+      },
+      "ResultPath": null,
+      "Catch": [{"ErrorEquals": ["States.ALL"], "ResultPath": "$.error", "Next": "NotifyFailure"}],
+      "End": true
+    },
+    "NotifyFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "TOPIC_ARN",
+        "Subject.$": "States.Format('Olist batch {} FAILED', $.batch_id)",
+        "Message.$": "States.Format('Batch {} failed. Details: {}', $.batch_id, States.JsonToString($))"
+      },
+      "ResultPath": null,
+      "Next": "Failed"
+    },
+    "Failed": {"Type": "Fail", "Error": "BatchFailed", "Cause": "Glue job, DQ check or notification failed; see the email"}
+  }
+}

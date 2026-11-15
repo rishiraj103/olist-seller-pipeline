@@ -1,0 +1,12 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {"Sid": "RunGlue", "Effect": "Allow",
+     "Action": ["glue:StartJobRun", "glue:GetJobRun", "glue:GetJobRuns", "glue:BatchStopJobRun"],
+     "Resource": "arn:aws:glue:REGION:ACCOUNT:job/raw_to_curated"},
+    {"Sid": "CheckDQ", "Effect": "Allow", "Action": "lambda:InvokeFunction",
+     "Resource": ["arn:aws:lambda:REGION:ACCOUNT:function:check_dq", "arn:aws:lambda:REGION:ACCOUNT:function:check_dq:*"]},
+    {"Sid": "Notify", "Effect": "Allow", "Action": "sns:Publish",
+     "Resource": "arn:aws:sns:REGION:ACCOUNT:olist-pipeline-alerts"}
+  ]
+}
