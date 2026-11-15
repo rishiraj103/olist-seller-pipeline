@@ -1,12 +1,15 @@
-"""Lambda: a manifest.json lands in landing/batch_id=X/ -> check every listed file's MD5 -> copy batch to raw/.
+"""Lambda: a manifest.json lands in landing/batch_id=X/ -> check every listed file's MD5 -> copy batch to raw/
+-> start the Step Functions pipeline for the batch.
 
 Trigger: S3 ObjectCreated on prefix landing/, suffix manifest.json. A bad manifest raises and nothing is copied.
 """
 import hashlib
 import json
 import logging
+import os
 import posixpath
 import re
+import time
 from urllib.parse import unquote_plus
 
 log = logging.getLogger()
@@ -61,4 +64,9 @@ def handler(event, context):
         s3.copy_object(Bucket=bucket, Key=f"raw/batch_id={batch_id}/{name}",
                        CopySource={"Bucket": bucket, "Key": f"{folder}/{name}"})
     log.info("manifest OK: batch %s, %d files copied to raw/", batch_id, len(manifest["files"]))
+
+    execution = boto3.client("stepfunctions").start_execution(
+        stateMachineArn=os.environ["STATE_MACHINE_ARN"], name=f"{batch_id}-{int(time.time())}",
+        input=json.dumps({"batch_id": batch_id}))
+    log.info("pipeline started: %s", execution["executionArn"])
     return {"batch_id": batch_id, "files": len(manifest["files"])}
