@@ -58,8 +58,9 @@ RULES = {
 
 
 def read_csv(spark: SparkSession, path: str, table: str) -> DataFrame:
+    # enforceSchema=False: a header that does not match the schema (renamed/missing column) fails the job
     return spark.read.csv(f"{path}/{table}.csv", schema=SCHEMAS[table], header=True, multiLine=True,
-                          escape='"', timestampFormat="yyyy-MM-dd HH:mm:ss")
+                          escape='"', timestampFormat="yyyy-MM-dd HH:mm:ss", enforceSchema=False)
 
 
 def write_text(path: str, text: str) -> None:
