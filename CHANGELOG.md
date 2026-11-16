@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.8-aws-pipeline — 2026-11-16
+- Step Functions `olist-batch-pipeline`: Glue → `check_dq` Lambda → reject-rate gate (5%) → SNS email; every task catches into a failure email; retries only on transient service errors.
+- `on_batch_arrival` starts the pipeline after the manifest check: uploading a batch needs no other step.
+- The transform now fails on a CSV header that does not match the schema (`enforceSchema=False`); a broken batch fails at RawToCurated and emails.
+- RDS PostgreSQL 16 warehouse (`infra/setup_rds.sh`, `infra/init_rds_db.sh`) with `etl_writer` and read-only `app_reader` users.
+- Loader `--target rds` reads curated Parquet from S3 into RDS; batches 2018-01 and 2018-04 loaded with 0 reconciliation difference.
+
 ## v0.7-aws-lake — 2026-11-14
 - `infra/setup_aws.sh` (rerun-safe) creates the S3 lake (private, encrypted, versioned, lifecycle rules), least-privilege IAM roles, the ingest Lambda, the Glue 5.0 job and an Athena workgroup with a 100 MB scan limit.
 - Lambda `on_batch_arrival` checks every manifest file's MD5 and copies the batch from `landing/` to `raw/`; a bad manifest fails and copies nothing.
