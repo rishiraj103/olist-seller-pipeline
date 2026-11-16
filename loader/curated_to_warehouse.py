@@ -1,6 +1,7 @@
 """Load one curated batch into PostgreSQL: refill staging.*, record DQ results, CALL dw.run_batch.
 
-Usage: python -m loader.curated_to_warehouse --batch 2018-03 [--lake data/lake]
+Usage: python -m loader.curated_to_warehouse --batch 2018-03                 # local lake -> Docker PostgreSQL
+       python -m loader.curated_to_warehouse --batch 2018-04 --target rds    # s3://$S3_BUCKET -> RDS
 """
 import argparse
 import io
@@ -17,10 +18,12 @@ log = logging.getLogger("loader")
 TABLES = ["orders", "order_items", "order_reviews", "customers", "sellers", "products"]
 
 
-def connect():
-    return psycopg2.connect(host=os.getenv("PG_HOST", "localhost"), port=os.getenv("PG_PORT", "5432"),
-                            dbname=os.getenv("PG_DB", "olist"), user=os.getenv("PG_USER", "postgres"),
-                            password=os.getenv("PG_PASSWORD"))
+def connect(target: str = "local"):
+    """local -> PG_* settings (Docker); rds -> RDS_* settings (connects as etl_writer)."""
+    p = "RDS_" if target == "rds" else "PG_"
+    return psycopg2.connect(host=os.getenv(f"{p}HOST", "localhost"), port=os.getenv(f"{p}PORT", "5432"),
+                            dbname=os.getenv(f"{p}DB", "olist"), user=os.getenv(f"{p}USER", "postgres"),
+                            password=os.getenv(f"{p}PASSWORD"), connect_timeout=10)
 
 
 def read_text(path: str) -> str:
@@ -59,14 +62,16 @@ def main() -> None:
     load_dotenv()
     ap = argparse.ArgumentParser()
     ap.add_argument("--batch", required=True)
-    ap.add_argument("--lake", default="data/lake")
+    ap.add_argument("--target", choices=["local", "rds"], default="local")
+    ap.add_argument("--lake", help="default: data/lake for local, s3://$S3_BUCKET for rds")
     args = ap.parse_args()
+    lake = args.lake or ("data/lake" if args.target == "local" else f"s3://{os.environ['S3_BUCKET']}")
 
-    conn = connect()
+    conn = connect(args.target)
     try:
         with conn, conn.cursor() as cur:  # one transaction for staging + DQ results
-            load_staging(cur, args.lake, args.batch)
-            load_dq(cur, args.lake, args.batch)
+            load_staging(cur, lake, args.batch)
+            load_dq(cur, lake, args.batch)
         conn.autocommit = True  # run_batch commits its own log rows
         with conn.cursor() as cur:
             cur.execute("CALL dw.run_batch(%s)", (args.batch,))
