@@ -12,8 +12,11 @@ GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA staging, 
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA dw, audit TO etl_writer;
 GRANT EXECUTE ON ALL ROUTINES IN SCHEMA dw TO etl_writer;
 
--- app_reader: read the warehouse and audit tables only (also views created later)
-GRANT USAGE ON SCHEMA dw, audit TO app_reader;
-GRANT SELECT ON ALL TABLES IN SCHEMA dw, audit TO app_reader;
-ALTER DEFAULT PRIVILEGES IN SCHEMA dw GRANT SELECT ON TABLES TO app_reader;
-ALTER DEFAULT PRIVILEGES IN SCHEMA audit GRANT SELECT ON TABLES TO app_reader;
+-- app_reader: read only (analytics views for the app, dw/audit for drill-down); also objects created later
+GRANT USAGE ON SCHEMA dw, audit, analytics TO app_reader;
+GRANT SELECT ON ALL TABLES IN SCHEMA dw, audit, analytics TO app_reader;
+ALTER DEFAULT PRIVILEGES IN SCHEMA dw, audit, analytics GRANT SELECT ON TABLES TO app_reader;
+
+-- etl_writer also runs the analytics queries and checks
+GRANT USAGE ON SCHEMA analytics TO etl_writer;
+GRANT SELECT ON ALL TABLES IN SCHEMA analytics TO etl_writer;
