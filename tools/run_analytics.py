@@ -34,7 +34,7 @@ def main() -> None:
             for path in sorted(Path("sql/analytics").glob("q*.sql")):
                 cols, rows, ms = run(cur, path)
                 with open(out / f"{path.stem}.csv", "w", newline="") as f:
-                    csv.writer(f).writerows([cols, *rows])
+                    csv.writer(f, lineterminator="\n").writerows([cols, *rows])
                 print(f"{path.stem}: {len(rows)} rows, {ms:.0f} ms")
             for path in sorted(Path("sql/checks").glob("*.sql")):
                 cols, rows, _ = run(cur, path)
