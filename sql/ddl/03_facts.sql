@@ -44,10 +44,12 @@ CREATE TABLE IF NOT EXISTS dw.review_text (
     PRIMARY KEY (review_id, order_id)
 );
 
--- Foreign-key indexes. The composite (seller_key, purchase_date_key) index is added in the Step 9 experiment.
+-- Foreign-key indexes. Seller lookups use the composite (seller_key, purchase_date_key) index, which also serves
+-- seller_key alone, so it replaces the single-column one (docs/analytics.md, index experiment).
 CREATE INDEX IF NOT EXISTS ix_foi_purchase_date ON dw.fact_order_item (purchase_date_key);
 CREATE INDEX IF NOT EXISTS ix_foi_customer      ON dw.fact_order_item (customer_key);
-CREATE INDEX IF NOT EXISTS ix_foi_seller        ON dw.fact_order_item (seller_key);
+CREATE INDEX IF NOT EXISTS ix_foi_seller_date   ON dw.fact_order_item (seller_key, purchase_date_key);
+DROP INDEX IF EXISTS dw.ix_foi_seller;
 CREATE INDEX IF NOT EXISTS ix_foi_product       ON dw.fact_order_item (product_key);
 CREATE INDEX IF NOT EXISTS ix_foi_batch         ON dw.fact_order_item (batch_id);
 CREATE INDEX IF NOT EXISTS ix_fof_customer      ON dw.fact_order_fulfilment (customer_key);

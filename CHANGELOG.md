@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9-analytics — 2026-11-18
+- Six business queries in `sql/analytics/` (window functions, CTEs, SCD2 history); Q1, Q2, Q6 are views in the `analytics` schema for the app; `app_reader` can read them.
+- `tools/run_analytics.py` saves results to `docs/results/*.csv` and runs the validation queries in `sql/checks/` (all return no rows).
+- Index experiment: composite `(seller_key, purchase_date_key)` makes the seller scorecard query 7× faster than a scan and replaces the single-column seller index; Q2 is a full aggregation and is not helped by indexes.
+- Athena query on the curated lake scans 51 KB and matches the warehouse.
+
 ## v0.8-aws-pipeline — 2026-11-16
 - Step Functions `olist-batch-pipeline`: Glue → `check_dq` Lambda → reject-rate gate (5%) → SNS email; every task catches into a failure email; retries only on transient service errors.
 - `on_batch_arrival` starts the pipeline after the manifest check: uploading a batch needs no other step.

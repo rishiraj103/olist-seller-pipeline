@@ -11,3 +11,14 @@ Olist is a Brazilian marketplace where many small sellers sell products. Late de
 - Seller-success team: seller scorecards and the reasons behind bad ratings.
 
 **Data:** [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) (~100k anonymised orders, 2016–2018). The CSVs are not included in this repo; download them into `data/source/`.
+
+## Results so far
+
+| What | Measured |
+| --- | --- |
+| Seller scorecard query with composite index `(seller_key, purchase_date_key)` | 11.3 ms → 1.6 ms (vs. a full scan) |
+| Athena: items and revenue per batch on the curated lake | 51 KB scanned |
+| Repeat customers (Q5) | 3.12% ordered more than once |
+| Late orders with a 1–2 star review (Q4, top category) | 62.7% (bed_bath_table) |
+
+Details: [docs/analytics.md](docs/analytics.md).
