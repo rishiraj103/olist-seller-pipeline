@@ -19,11 +19,13 @@ TABLES = ["orders", "order_items", "order_reviews", "customers", "sellers", "pro
 
 
 def connect(target: str = "local"):
-    """local -> PG_* settings (Docker); rds -> RDS_* settings (connects as etl_writer)."""
-    p = "RDS_" if target == "rds" else "PG_"
+    """local -> PG_* settings (Docker); rds -> RDS_* as etl_writer; app -> RDS as read-only app_reader."""
+    p = "PG_" if target == "local" else "RDS_"
+    user, password = os.getenv(f"{p}USER", "postgres"), os.getenv(f"{p}PASSWORD")
+    if target == "app":
+        user, password = "app_reader", os.getenv("APP_READER_PASSWORD")
     return psycopg2.connect(host=os.getenv(f"{p}HOST", "localhost"), port=os.getenv(f"{p}PORT", "5432"),
-                            dbname=os.getenv(f"{p}DB", "olist"), user=os.getenv(f"{p}USER", "postgres"),
-                            password=os.getenv(f"{p}PASSWORD"), connect_timeout=10)
+                            dbname=os.getenv(f"{p}DB", "olist"), user=user, password=password, connect_timeout=10)
 
 
 def read_text(path: str) -> str:
