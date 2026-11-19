@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.10-genai — 2026-11-19
+- `genai/llm_client.py`: local Ollama (`qwen2.5:7b`) by default, Bedrock Converse as a drop-in swap (`LLM_PROVIDER=bedrock`); logs tokens and response time.
+- `genai/insights.py` `explain_seller`: two fixed parameterised queries (seller monthly metrics vs. category average; up to 30 low-star review texts), "not enough data" below 10 reviews, no customer identifiers sent.
+- Number-check guardrail: an answer with a number not found in the data is replaced by the metrics and a warning (unit-tested).
+- `docs/genai_eval.md`: 5 sellers checked by hand; 4 of 5 fully traceable, themes found but counts approximate; prompt and model changes measured.
+
 ## v0.9-analytics — 2026-11-18
 - Six business queries in `sql/analytics/` (window functions, CTEs, SCD2 history); Q1, Q2, Q6 are views in the `analytics` schema for the app; `app_reader` can read them.
 - `tools/run_analytics.py` saves results to `docs/results/*.csv` and runs the validation queries in `sql/checks/` (all return no rows).
