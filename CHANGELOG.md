@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11-app — 2026-11-20
+- Streamlit app (`app/streamlit_app.py`): Overview (KPI cards, month and state filters, on-time trend, latest batch status), Seller scorecard (sortable top-10 table, monthly revenue and rating, SCD2 location history), AI insight (metrics and explanation side by side).
+- Reads only `analytics` views plus `dw.dim_seller` and `audit.batch_log`; `WAREHOUSE=app` connects to RDS as `app_reader`; query results cached.
+- New views `analytics.kpi_monthly` and `analytics.seller_monthly`; Q2 now ranks `seller_monthly` (same results).
+- Screenshots in `docs/screenshots/`.
+
 ## v0.10-genai — 2026-11-19
 - `genai/llm_client.py`: local Ollama (`qwen2.5:7b`) by default, Bedrock Converse as a drop-in swap (`LLM_PROVIDER=bedrock`); logs tokens and response time.
 - `genai/insights.py` `explain_seller`: two fixed parameterised queries (seller monthly metrics vs. category average; up to 30 low-star review texts), "not enough data" below 10 reviews, no customer identifiers sent.
