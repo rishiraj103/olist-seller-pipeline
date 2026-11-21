@@ -24,6 +24,11 @@ Passwords live only in the local `.env`; `sql/admin/users.sql` takes them as psq
 
 Verified: batches 2018-01 and 2018-04 loaded with `SUCCESS` and 0 reconciliation difference; reloading 2018-04 changed no counts; `app_reader` can read facts and is denied `DELETE`.
 
+Full clean run (`sql/admin/reset_warehouse.sql`, emptied lake, `tools/run_all_batches.sh`): all 9 batches passed the
+pipeline and loaded with `SUCCESS`, 0 reconciliation difference, 10 sellers with exactly two versions, and row counts
+equal to the local warehouse (112,600 items, 99,418 orders, 99,201 reviews, 3,106 seller versions). The app runs
+against RDS as `app_reader`.
+
 ## Why the load runs from the laptop
 
 Running it inside AWS needs Glue (or Lambda) inside the VPC with a JDBC connection, VPC endpoints for S3 and security-group rules. That is a lot of setup with little to show in a demo. Future work: a Glue Python shell job in the VPC, started by Step Functions after `NotifySuccess`.

@@ -8,7 +8,8 @@ python -m tools.run_analytics              # local warehouse; --target rds for R
 ```
 
 It writes each result to `docs/results/<query>.csv` and runs the validation queries in `sql/checks/`,
-failing if any returns a row. Results below are from the local warehouse with all 9 batches (112,600 items).
+failing if any returns a row. Results below are from the warehouse with all 9 batches (112,600 items); the RDS run
+after the full AWS pipeline produced byte-identical CSVs (queries take 0.5–1.5 s on `db.t4g.micro` over the internet).
 
 | # | Question | Technique | Rows | Headline |
 | --- | --- | --- | --- | --- |
@@ -44,8 +45,8 @@ Local PostgreSQL 16, `fact_order_item` = 112,600 rows; median of 7 `EXPLAIN ANAL
 
 ## Athena on the lake
 
-`sql/athena/items_per_batch.sql` (items and revenue per batch from curated Parquet) scanned **51 KB**;
-its numbers equal the warehouse for 2018-01, 2018-04 and 2018-05 (8,208 / 7,975 / 7,925 items).
+`sql/athena/items_per_batch.sql` (items and revenue per batch from curated Parquet) scanned **51 KB** for three
+batches and **238 KB** for all nine; per-batch counts and revenue equal the warehouse (112,600 items in total).
 
 ## Known data limitation
 
