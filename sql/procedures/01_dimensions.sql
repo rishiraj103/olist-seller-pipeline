@@ -43,6 +43,7 @@ END $$;
 
 -- SCD Type 2 on (city, state). p_date = first purchase date in the batch: the new version starts there,
 -- the old one ends the day before, so every order is matched to the version valid on its purchase date.
+-- The hash coalesces NULLs: with plain ||, one NULL makes the whole hash NULL and the change check skips the row.
 CREATE OR REPLACE PROCEDURE dw.load_dim_seller_scd2(p_batch text, p_date date)
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -51,12 +52,12 @@ BEGIN
     SET    effective_end = p_date - 1, is_current = false
     FROM   staging.sellers s
     WHERE  d.seller_id = s.seller_id AND d.is_current
-      AND  d.row_hash <> md5(s.seller_city || '|' || s.seller_state);
+      AND  d.row_hash <> md5(coalesce(s.seller_city, '') || '|' || coalesce(s.seller_state, ''));
 
     -- 2) insert new sellers and new versions (sellers with no current row)
     INSERT INTO dw.dim_seller (seller_id, zip_code_prefix, city, state, row_hash, effective_start)
     SELECT s.seller_id, s.seller_zip_code_prefix, s.seller_city, s.seller_state,
-           md5(s.seller_city || '|' || s.seller_state), p_date
+           md5(coalesce(s.seller_city, '') || '|' || coalesce(s.seller_state, '')), p_date
     FROM   staging.sellers s
     LEFT JOIN dw.dim_seller d ON d.seller_id = s.seller_id AND d.is_current
     WHERE  d.seller_id IS NULL;

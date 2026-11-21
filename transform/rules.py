@@ -43,7 +43,8 @@ def check(condition_is_bad: Callable[[], Column], reason: str) -> Rule:
 
 
 def not_in(col: str, allowed: list, reason: str) -> Rule:
-    return check(lambda: ~F.col(col).isin(allowed), reason)
+    """Reject values outside `allowed`; NULL is rejected too (a NULL check result would otherwise count as good)."""
+    return check(lambda: F.col(col).isNull() | ~F.col(col).isin(allowed), reason)
 
 
 def before(later: str, earlier: str, reason: str) -> Rule:
@@ -89,14 +90,15 @@ def location_rules(key: str, prefix: str) -> list[Rule]:
         null_key(key),
         duplicate_key(key),
         not_in(f"{prefix}_state", BR_STATES, "invalid_state"),
-        check(lambda: ~F.col(f"{prefix}_zip_code_prefix").rlike(r"^\d{5}$"), "invalid_zip"),
+        check(lambda: F.col(f"{prefix}_zip_code_prefix").isNull()
+              | ~F.col(f"{prefix}_zip_code_prefix").rlike(r"^\d{5}$"), "invalid_zip"),
     ]
 
 
 REVIEW_RULES = [
     null_key("review_id", "order_id"),
     duplicate_key("review_id", "order_id", latest_by="review_answer_timestamp"),
-    check(lambda: ~F.col("review_score").between(1, 5), "invalid_score"),
+    check(lambda: F.col("review_score").isNull() | ~F.col("review_score").between(1, 5), "invalid_score"),
 ]
 
 PRODUCT_RULES = [null_key("product_id"), duplicate_key("product_id")]

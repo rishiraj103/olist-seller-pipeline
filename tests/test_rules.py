@@ -46,9 +46,9 @@ class TestRules(unittest.TestCase):
         self.assertEqual(ids(bad), [1])
 
     def test_invalid_status(self):
-        rows = [(1, "delivered"), (2, "lost")]
-        good, bad = R.not_in("s", R.ORDER_STATUSES, "invalid_status")(self.df(rows, ["id", "s"]))
-        self.assertEqual((ids(good), ids(bad)), ([1], [2]))
+        rows = [(1, "delivered"), (2, "lost"), (3, None)]
+        good, bad = R.not_in("s", R.ORDER_STATUSES, "invalid_status")(self.df(rows, "id int, s string"))
+        self.assertEqual((ids(good), ids(bad)), ([1], [2, 3]))
 
     def test_before_allows_null(self):
         rows = [(1, datetime(2018, 1, 2), datetime(2018, 1, 1)),
@@ -69,20 +69,22 @@ class TestRules(unittest.TestCase):
         self.assertEqual((ids(good), ids(bad)), ([1], [2]))
 
     def test_location_rules(self):
-        rows = [(1, " sp ", "01001", " Sao Paulo "), (2, "XX", "01001", "a"), (3, "RJ", "123", "b")]
-        df = R.clean_location(self.df(rows, ["seller_id", "seller_state", "seller_zip_code_prefix", "seller_city"]),
-                              "seller")
+        rows = [(1, " sp ", "01001", " Sao Paulo "), (2, "XX", "01001", "a"), (3, "RJ", "123", "b"),
+                (4, None, "01001", "c"), (5, "RJ", None, "d")]
+        df = R.clean_location(self.df(rows, "seller_id int, seller_state string, seller_zip_code_prefix string, "
+                                            "seller_city string"), "seller")
         good, bad = R.apply_rules(df, R.location_rules("seller_id", "seller"))
         row = good.collect()[0]
-        self.assertEqual((row.seller_id, row.seller_state, row.seller_city), (1, "SP", "sao paulo"))
+        self.assertEqual((good.count(), row.seller_id, row.seller_state, row.seller_city), (1, 1, "SP", "sao paulo"))
         self.assertEqual({(r.seller_id, r.reject_reason) for r in bad.collect()},
-                         {(2, "invalid_state"), (3, "invalid_zip")})
+                         {(2, "invalid_state"), (3, "invalid_zip"), (4, "invalid_state"), (5, "invalid_zip")})
 
     def test_invalid_score(self):
-        rows = [("r1", "o1", 5, datetime(2018, 1, 1)), ("r2", "o2", 6, datetime(2018, 1, 1))]
-        good, bad = R.apply_rules(self.df(rows, ["review_id", "order_id", "review_score", "review_answer_timestamp"]),
-                                  R.REVIEW_RULES)
-        self.assertEqual((ids(good, "review_id"), ids(bad, "review_id")), (["r1"], ["r2"]))
+        rows = [("r1", "o1", 5, datetime(2018, 1, 1)), ("r2", "o2", 6, datetime(2018, 1, 1)),
+                ("r3", "o3", None, datetime(2018, 1, 1))]
+        schema = "review_id string, order_id string, review_score int, review_answer_timestamp timestamp"
+        good, bad = R.apply_rules(self.df(rows, schema), R.REVIEW_RULES)
+        self.assertEqual((ids(good, "review_id"), ids(bad, "review_id")), (["r1"], ["r2", "r3"]))
 
     def test_exists_in(self):
         orders = self.df([("o1",)], ["order_id"])
