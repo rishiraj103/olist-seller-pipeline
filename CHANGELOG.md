@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0 — 2026-11-21
+- Finished project: S3/Lambda/Glue/Step Functions/SNS lake and pipeline, RDS star-schema warehouse with SCD2, six analytics queries, grounded GenAI seller insight, Streamlit app; all targets met except GenAI traceability (4/5, documented).
+- `infra/teardown_aws.sh` deletes every AWS resource the project created (requires `CONFIRM=delete`).
+
 ## v0.12-docs — 2026-11-21
 - Full clean run on AWS: all 9 batches uploaded in order through `landing/` (`tools/run_all_batches.sh`), every pipeline execution succeeded, every batch loaded into RDS with 0 reconciliation difference; analytics on RDS identical to local; app verified against RDS as `app_reader`.
 - `sql/admin/reset_warehouse.sql` empties the warehouse for a clean reload.
