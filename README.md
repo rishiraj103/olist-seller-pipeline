@@ -85,6 +85,7 @@ WAREHOUSE=app streamlit run app/streamlit_app.py      # app reads RDS as app_rea
 
 All scripts are rerun-safe. Details: [AWS setup](docs/aws_setup.md), [RDS setup](docs/rds_setup.md).
 Confirm the SNS subscription email once. Stop RDS when idle (`aws rds stop-db-instance --db-instance-identifier olist-warehouse`).
+When finished, `CONFIRM=delete bash infra/teardown_aws.sh` deletes every resource (irreversible).
 
 ## Results
 
