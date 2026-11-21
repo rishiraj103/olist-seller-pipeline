@@ -15,6 +15,5 @@ __pycache__/
 # local-only files
 CHECKLIST.md
 *.local.md
-.claude/
 .vscode/
 *.lnk
