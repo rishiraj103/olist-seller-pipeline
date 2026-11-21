@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.12-docs — 2026-11-21
+- Full clean run on AWS: all 9 batches uploaded in order through `landing/` (`tools/run_all_batches.sh`), every pipeline execution succeeded, every batch loaded into RDS with 0 reconciliation difference; analytics on RDS identical to local; app verified against RDS as `app_reader`.
+- `sql/admin/reset_warehouse.sql` empties the warehouse for a clean reload.
+- README completed (architecture, run/deploy, results against targets, GenAI evaluation, screenshots, limitations); `docs/decisions.md` added.
+
 ## v0.11-app — 2026-11-20
 - Streamlit app (`app/streamlit_app.py`): Overview (KPI cards, month and state filters, on-time trend, latest batch status), Seller scorecard (sortable top-10 table, monthly revenue and rating, SCD2 location history), AI insight (metrics and explanation side by side).
 - Reads only `analytics` views plus `dw.dim_seller` and `audit.batch_log`; `WAREHOUSE=app` connects to RDS as `app_reader`; query results cached.
