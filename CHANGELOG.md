@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.1 — 2026-11-21
+- GenAI number check: small whole numbers are allowed only as a count before "review(s)" (at most the review count), a star rating or a list marker; an invented "25%" no longer passes. Two new unit tests.
+- Data quality: `invalid_state`, `invalid_zip` and `invalid_score` now reject NULL values instead of letting them through (they would have failed later on a NOT NULL constraint). Tests extended; DQ results for all 9 batches unchanged.
+- SCD2: the seller `row_hash` coalesces NULL city/state, so a NULL can no longer silently skip the change check. Existing hashes are unchanged.
+
 ## v1.0 — 2026-11-21
 - Finished project: S3/Lambda/Glue/Step Functions/SNS lake and pipeline, RDS star-schema warehouse with SCD2, six analytics queries, grounded GenAI seller insight, Streamlit app; all targets met except GenAI traceability (4/5, documented).
 - `infra/teardown_aws.sh` deletes every AWS resource the project created (requires `CONFIRM=delete`).

@@ -101,7 +101,7 @@ When finished, `CONFIRM=delete bash infra/teardown_aws.sh` deletes every resourc
 | Performance | one measured improvement | seller scorecard query 11.3 ms → 1.6 ms with `(seller_key, purchase_date_key)` |
 | Athena | scan little | items and revenue for all 9 batches: 238 KB scanned; totals equal the warehouse (112,600 items) |
 | GenAI | 5/5 hand-checked answers traceable | **4/5** (one real number attached to the wrong month); see below |
-| Code | all unit tests pass | 20 tests, GitHub Actions green |
+| Code | all unit tests pass | 22 tests, GitHub Actions green |
 
 Some answers to the business questions ([details](docs/analytics.md)): on-time delivery was ~97% for most of 2017,
 dipped to 87.6% (Nov 2017) and 81.0% (Mar 2018 purchases), then recovered to 93–99%; 62.7% of late `bed_bath_table` orders got a 1–2 star review; only 3.12% of customers
