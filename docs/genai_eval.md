@@ -20,10 +20,13 @@ late %) are correct, and the main complaint themes are found, but theme counts a
 
 ## What the guardrail does and does not catch
 
-- Every number in the answer must equal a metric value (or its rounding), a part of a month/period date, 1–5,
-  or a count no larger than the number of reviews. Otherwise the metrics are shown with a warning instead.
-  In testing it rejected `qwen2.5:3b` answers that invented "100%" and an unexplained "31" (the latter was a
-  period date, now allowed).
+- Every number in the answer must equal a metric value (or its rounding) or a part of a month/period date.
+  Small whole numbers are allowed only in three positions: a count directly before "review(s)" that is no larger
+  than the number of reviews ("7 reviews"), a star rating before "star(s)" ("1-2 star"), and a list marker ("1.",
+  "2)"). Otherwise the metrics are shown with a warning instead. In testing it rejected `qwen2.5:3b` answers that
+  invented "100%" and an unexplained "31" (the latter was a period date, now allowed).
+- An earlier version allowed every whole number up to the review count anywhere, so an invented "25% late" passed
+  when there were 30 reviews. That gap is closed and unit-tested; all five answers above still pass the stricter check.
 - It cannot catch a real number attached to the wrong month or a wrong direction word ("decreasing"), as in
   rows 2 and 5. The app therefore always shows the metrics table next to the answer.
 

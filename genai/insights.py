@@ -68,6 +68,10 @@ ORDER BY r.review_id
 
 NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
 PLACEHOLDER = re.compile(r"^\s*(Answer:\s*)?<[^>]*>\s*$")
+# Small whole numbers are allowed only in these positions, never on their own:
+REVIEW_COUNT = re.compile(r"\b(\d+)(?=\s+(?:low-star\s+)?reviews?\b)", re.IGNORECASE)  # "7 reviews"
+STARS = re.compile(r"\b([1-5])(?:\s*-\s*([1-5]))?(?=[\s-]*stars?\b)", re.IGNORECASE)    # "1-2 star", "5 stars"
+LIST_MARK = re.compile(r"(?m)^\s*\d+[.)](?=\s)|(?<![\d.])\d\)")                            # "1." / "2)"
 
 
 def numbers_in(text: str) -> set[float]:
@@ -78,12 +82,16 @@ def check_numbers(answer: str, metrics: list[dict], review_count: int) -> list[f
     """Return numbers in the answer that cannot be traced to the metrics (empty = OK).
 
     Allowed: any metric value or its rounding to 1/0 decimals (sign ignored: "-3.5" may be written "3.5 days early"),
-    parts of the months ("2018-03" -> 2018, 3), list numbering / star ratings 1-5, and theme counts up to review_count.
+    parts of the months ("2018-03" -> 2018, 3), and three positional exceptions: a count directly before "review(s)"
+    that is at most review_count, star ratings 1-5 before "star(s)", and list markers. Any other number, e.g. an
+    invented "25%", must match the metrics.
     """
-    allowed = set(range(max(review_count, 5) + 1))
+    allowed = set()
     for value in numbers_in(json.dumps(metrics)):
         allowed |= {value, round(value, 1), float(round(value))}
-    return sorted(n for n in numbers_in(answer) if n not in allowed)
+    text = REVIEW_COUNT.sub(lambda m: "" if int(m.group(1)) <= review_count else m.group(0), answer)
+    text = LIST_MARK.sub("", STARS.sub("", text))
+    return sorted(n for n in numbers_in(text) if n not in allowed)
 
 
 def explain_seller(seller_id: str, start: date, end: date, conn=None) -> dict:
